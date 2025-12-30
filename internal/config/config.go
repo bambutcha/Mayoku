@@ -38,6 +38,10 @@ type Config struct {
 	Telegram struct {
 		BotToken string `env:"TELEGRAM_BOT_TOKEN" env-default:""`
 	}
+
+	JWT struct {
+		Secret string `env:"JWT_SECRET" env-default:"change-me-in-production"`
+	}
 }
 
 // Load загружает конфигурацию из .env файла
@@ -63,4 +67,3 @@ func LoadFromFile(path string) (*Config, error) {
 
 	return &cfg, nil
 }
-

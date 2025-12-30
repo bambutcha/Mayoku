@@ -66,7 +66,11 @@ func main() {
 
 	// Создание HTTP сервера с Chi роутером
 	addr := fmt.Sprintf("%s:%s", cfg.App.Host, cfg.App.Port)
-	router := api.Router()
+	router := api.Router(api.RouterConfig{
+		DB:        db,
+		BotToken:  cfg.Telegram.BotToken,
+		JWTSecret: cfg.JWT.Secret,
+	})
 
 	server := &http.Server{
 		Addr:    addr,

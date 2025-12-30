@@ -24,6 +24,10 @@ services:
       - MINIO_SECRET_ACCESS_KEY=minioadmin
       - MINIO_USE_SSL=false
       - MINIO_BUCKET_NAME=mayoku
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+    env_file:
+      - .env
     depends_on:
       - postgres
       - redis
