@@ -9,7 +9,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Chelaran/mayoku/internal/api"
 	"github.com/Chelaran/mayoku/internal/config"
+	"github.com/Chelaran/mayoku/internal/database"
+	"github.com/Chelaran/mayoku/internal/models"
 
 	logger "github.com/Chelaran/yagalog"
 )
@@ -22,10 +25,8 @@ func main() {
 	}
 
 	// Загрузка конфигурации
-	// Сначала пробуем загрузить из .env файла, если не получается - из переменных окружения
 	cfg, err := config.LoadFromFile(".env")
 	if err != nil {
-		// Пробуем загрузить из переменных окружения
 		cfg, err = config.Load()
 		if err != nil {
 			log.Fatal("Failed to load config: %v", err)
@@ -34,19 +35,42 @@ func main() {
 
 	log.Info("Configuration loaded successfully")
 
-	// Создание HTTP сервера
-	addr := fmt.Sprintf("%s:%s", cfg.App.Host, cfg.App.Port)
-	mux := http.NewServeMux()
+	// Подключение к PostgreSQL
+	db, err := database.ConnectPostgres(cfg)
+	if err != nil {
+		log.Fatal("Failed to connect to PostgreSQL: %v", err)
+	}
+	log.Info("PostgreSQL connected successfully")
 
-	// Простой health check endpoint
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
-	})
+	// Автомиграция моделей
+	err = db.AutoMigrate(&models.User{}, &models.Deck{}, &models.Location{})
+	if err != nil {
+		log.Fatal("Failed to run migrations: %v", err)
+	}
+	log.Info("Database migrations completed")
+
+	// Подключение к Redis
+	redisClient, err := database.ConnectRedis(cfg)
+	if err != nil {
+		log.Fatal("Failed to connect to Redis: %v", err)
+	}
+	defer redisClient.Close()
+	log.Info("Redis connected successfully")
+
+	// Подключение к MinIO
+	_, err = database.ConnectMinIO(cfg)
+	if err != nil {
+		log.Fatal("Failed to connect to MinIO: %v", err)
+	}
+	log.Info("MinIO connected successfully, bucket '%s' ready", cfg.MinIO.BucketName)
+
+	// Создание HTTP сервера с Chi роутером
+	addr := fmt.Sprintf("%s:%s", cfg.App.Host, cfg.App.Port)
+	router := api.Router()
 
 	server := &http.Server{
 		Addr:    addr,
-		Handler: mux,
+		Handler: router,
 	}
 
 	// Graceful shutdown
