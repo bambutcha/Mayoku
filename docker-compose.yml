@@ -1,0 +1,100 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Mayoku/Dockerfile
+    container_name: mayoku-app
+    ports:
+      - "8080:8080"
+    environment:
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8080
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=mayoku
+      - POSTGRES_SSLMODE=disable
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_DB=0
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY_ID=minioadmin
+      - MINIO_SECRET_ACCESS_KEY=minioadmin
+      - MINIO_USE_SSL=false
+      - MINIO_BUCKET_NAME=mayoku
+    depends_on:
+      - postgres
+      - redis
+      - minio
+    networks:
+      - mayoku-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: mayoku-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=mayoku
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mayoku-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: mayoku-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - mayoku-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: mayoku-minio
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - mayoku-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+
+networks:
+  mayoku-network:
+    driver: bridge
+
