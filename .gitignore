@@ -5,6 +5,8 @@
 *.so
 *.dylib
 main
+api
+mayoku
 
 # Test binary
 *.test
@@ -31,5 +33,3 @@ go.work
 # OS
 .DS_Store
 Thumbs.db
-
-
