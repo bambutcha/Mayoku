@@ -4,7 +4,9 @@
 
 ### 1. Настройка переменных окружения
 
-#### Backend (.env в корне проекта)
+#### Для Docker Compose (.env в корне проекта)
+**Обязательно!** Docker Compose использует `.env` из корня проекта для подстановки переменных.
+
 Скопируйте `.env.example` в `.env` в корне проекта:
 ```bash
 cp .env.example .env
@@ -14,13 +16,19 @@ cp .env.example .env
 - `TELEGRAM_BOT_TOKEN` - токен вашего Telegram бота
 - `JWT_SECRET` - секретный ключ для JWT (используйте сильный случайный ключ)
 
-#### Frontend (.env в frontend/)
-Скопируйте `frontend/.env.example` в `frontend/.env`:
+#### Для локальной разработки Frontend (.env в frontend/)
+Если запускаете frontend отдельно (не через Docker), скопируйте:
 ```bash
 cp frontend/.env.example frontend/.env
 ```
 
 По умолчанию API URL: `http://localhost:8080`
+
+#### Для локальной разработки Backend (backend/.env)
+Если запускаете backend отдельно (не через Docker), скопируйте:
+```bash
+cp backend/.env.example backend/.env
+```
 
 ### 2. Запуск через Docker Compose
 
