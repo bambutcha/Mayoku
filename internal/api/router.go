@@ -256,6 +256,7 @@ func Router(cfg RouterConfig) http.Handler {
 	deckHandler := handlers.NewDeckHandler(cfg.DB)
 	gameHandler := handlers.NewGameHandler(cfg.GameHub, cfg.DB)
 	wsHandler := handlers.NewWebSocketHandler(cfg.GameHub, cfg.DB)
+	adminHandler := handlers.NewAdminHandler(cfg.DB)
 
 	// API routes
 	r.Route("/api", func(r chi.Router) {
@@ -289,6 +290,17 @@ func Router(cfg RouterConfig) http.Handler {
 				r.Post("/rooms", gameHandler.HandleCreateRoom) // POST /api/game/rooms - создание комнаты
 				r.Get("/rooms", gameHandler.HandleListRooms)   // GET /api/game/rooms - список комнат
 				r.Get("/ws", wsHandler.HandleWebSocket)        // GET /api/game/ws - WebSocket подключение
+			})
+
+			// Admin routes (требуют админских прав)
+			r.Route("/admin", func(r chi.Router) {
+				r.Use(middleware.AdminMiddleware(cfg.DB))
+
+				// Deck moderation
+				r.Get("/decks/pending", adminHandler.HandleGetPendingDecks)      // GET /api/admin/decks/pending - колоды на модерации
+				r.Get("/decks", adminHandler.HandleGetAllDecks)                 // GET /api/admin/decks - все колоды
+				r.Put("/decks/{id}/approve", adminHandler.HandleApproveDeck)    // PUT /api/admin/decks/:id/approve - одобрить
+				r.Put("/decks/{id}/reject", adminHandler.HandleRejectDeck)       // PUT /api/admin/decks/:id/reject - отклонить
 			})
 		})
 	})

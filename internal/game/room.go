@@ -9,20 +9,20 @@ import (
 	"time"
 
 	"github.com/Chelaran/mayoku/internal/models"
-	"github.com/redis/go-redis/v9"
 	logger "github.com/Chelaran/yagalog"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 // Room представляет игровую комнату
 type Room struct {
-	mu          sync.RWMutex
-	state       *RoomState
-	clients     map[uint]*Client // user_id -> Client
-	db          *gorm.DB
-	redis       *redis.Client
-	log         *logger.Logger
-	timer       *time.Timer
+	mu      sync.RWMutex
+	state   *RoomState
+	clients map[uint]*Client // user_id -> Client
+	db      *gorm.DB
+	redis   *redis.Client
+	log     *logger.Logger
+	timer   *time.Timer
 }
 
 // NewRoom создает новую комнату
@@ -248,10 +248,10 @@ func (r *Room) sendRolesToPlayers() {
 		msg := WSMessage{
 			Type: "game_started",
 			Payload: map[string]interface{}{
-				"room_id":    r.state.RoomID,
-				"my_role":    personalState,
-				"timer_end":  r.state.TimerEnd.Unix(),
-				"spy_count":  len(r.state.SpyIDs),
+				"room_id":   r.state.RoomID,
+				"my_role":   personalState,
+				"timer_end": r.state.TimerEnd.Unix(),
+				"spy_count": len(r.state.SpyIDs),
 			},
 		}
 
@@ -451,9 +451,9 @@ func (r *Room) finishGame() {
 	msg := WSMessage{
 		Type: "game_over",
 		Payload: map[string]interface{}{
-			"winner":      r.state.Winner,
-			"spy_ids":     r.state.SpyIDs,
-			"location":    r.state.Location,
+			"winner":   r.state.Winner,
+			"spy_ids":  r.state.SpyIDs,
+			"location": r.state.Location,
 		},
 	}
 	r.broadcastMessage(msg)
@@ -517,7 +517,7 @@ func (r *Room) saveGameHistory() {
 // broadcastState отправляет текущее состояние всем клиентам
 func (r *Room) broadcastState() {
 	msg := WSMessage{
-		Type: "room_update",
+		Type:    "room_update",
 		Payload: r.getPublicState(),
 	}
 	r.broadcastMessage(msg)
@@ -536,11 +536,11 @@ func (r *Room) getPublicState() map[string]interface{} {
 	players := make([]map[string]interface{}, 0, len(r.state.Players))
 	for _, player := range r.state.Players {
 		p := map[string]interface{}{
-			"user_id":   player.UserID,
-			"tg_id":     player.TgID,
-			"username":  player.Username,
+			"user_id":    player.UserID,
+			"tg_id":      player.TgID,
+			"username":   player.Username,
 			"avatar_url": player.AvatarURL,
-			"is_ready":  player.IsReady,
+			"is_ready":   player.IsReady,
 		}
 
 		// Роль показываем только после окончания игры
@@ -552,11 +552,11 @@ func (r *Room) getPublicState() map[string]interface{} {
 	}
 
 	state := map[string]interface{}{
-		"room_id":    r.state.RoomID,
-		"status":     r.state.Status,
-		"players":    players,
+		"room_id":     r.state.RoomID,
+		"status":      r.state.Status,
+		"players":     players,
 		"max_players": r.state.MaxPlayers,
-		"deck_name":  r.state.DeckName,
+		"deck_name":   r.state.DeckName,
 	}
 
 	if r.state.TimerEnd != nil {
@@ -605,4 +605,3 @@ func (r *Room) LoadFromRedis() error {
 
 	return json.Unmarshal(data, r.state)
 }
-

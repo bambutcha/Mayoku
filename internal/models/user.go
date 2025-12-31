@@ -20,6 +20,9 @@ type User struct {
 	LossesSpy   int `gorm:"default:0" json:"losses_spy"`
 	LossesLocal int `gorm:"default:0" json:"losses_local"`
 
+	// Admin
+	IsAdmin bool `gorm:"default:false" json:"is_admin"`
+
 	// Связи
 	Decks       []Deck        `gorm:"foreignKey:AuthorID" json:"decks,omitempty"`
 	GameHistory []GameHistory `gorm:"many2many:game_players;" json:"game_history,omitempty"`
