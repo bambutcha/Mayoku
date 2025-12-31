@@ -1,9 +1,9 @@
 services:
-  app:
+  backend:
     build:
-      context: ..
-      dockerfile: Mayoku/Dockerfile
-    container_name: mayoku-app
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: mayoku-backend
     ports:
       - "8080:8080"
     environment:

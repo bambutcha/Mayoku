@@ -2,10 +2,10 @@ FROM golang:1.25.3-alpine AS builder
 
 WORKDIR /app
 
-COPY Mayoku/go.mod Mayoku/go.sum ./
+COPY backend/go.mod backend/go.sum ./
 RUN go mod download
 
-COPY Mayoku/ ./
+COPY backend/ ./
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/mayoku ./cmd/api
 
 FROM alpine:latest
