@@ -22,10 +22,15 @@
 
 1. В личном кабинете нажмите "Создать публикацию" или "Новая публикация"
 2. Заполните форму:
-   - **Локальный адрес**: `http://localhost:8080`
+   - **Локальный адрес**: `http://localhost:80` (или просто `http://localhost`)
    - **Протокол**: `HTTP`
    - **Название**: `Mayoku Dev` (опционально)
 3. Сохраните публикацию
+
+**Важно:** Теперь nginx работает на порту 80 и является единой точкой входа:
+- Frontend отдается напрямую
+- API запросы проксируются на `/api/*` → backend
+- WebSocket соединения проксируются на `/api/game/ws` → backend
 
 ### Шаг 3: Получите публичный URL
 
@@ -52,21 +57,29 @@
 # 1. Убедитесь, что приложение запущено
 docker compose up -d
 
-# 2. Проверьте, что сервер работает локально
-curl http://localhost:8080/health
-# Должно вернуть: OK
+# 2. Проверьте, что nginx работает локально
+curl http://localhost/health
+# Должно вернуть: healthy
 
-# 3. В CloudPub создайте публикацию:
-#    Локальный адрес: http://localhost:8080
+# 3. Проверьте, что API доступен через nginx
+curl http://localhost/api/health
+# Должно вернуть ответ от backend
+
+# 4. В CloudPub создайте публикацию:
+#    Локальный адрес: http://localhost:80 (или http://localhost)
 #    Протокол: HTTP
 
-# 4. Скопируйте полученный HTTPS URL (например: https://abc123.cloudpub.ru)
+# 5. Скопируйте полученный HTTPS URL (например: https://abc123.cloudpub.ru)
 
-# 5. Проверьте публичный доступ
+# 6. Проверьте публичный доступ
 curl https://abc123.cloudpub.ru/health
-# Должно вернуть: OK
+# Должно вернуть: healthy
 
-# 6. Используйте этот URL в BotFather при создании Mini App
+# 7. Проверьте API через публичный URL
+curl https://abc123.cloudpub.ru/api/health
+# Должно вернуть ответ от backend
+
+# 8. Используйте этот URL в BotFather при создании Mini App
 ```
 
 ## Получение initData
@@ -123,8 +136,9 @@ window.Telegram.WebApp.initData
 ### CloudPub не подключается к localhost
 
 1. Убедитесь, что приложение запущено: `docker compose ps`
-2. Проверьте локальный доступ: `curl http://localhost:8080/health`
-3. В CloudPub укажите правильный порт: `8080`
+2. Проверьте локальный доступ: `curl http://localhost/health`
+3. В CloudPub укажите правильный порт: `80` (или просто `http://localhost`)
+4. Убедитесь, что nginx контейнер запущен: `docker compose logs nginx`
 
 ### BotFather не принимает URL
 

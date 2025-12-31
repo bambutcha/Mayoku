@@ -10,8 +10,10 @@ BotFather требует **HTTPS URL** для Mini App, но `localhost` не п
 
 **Быстро:**
 1. Зарегистрируйтесь на [cloudpub.ru](https://cloudpub.ru)
-2. Создайте публикацию: `http://localhost:8080` → получите HTTPS URL
+2. Создайте публикацию: `http://localhost:80` (или `http://localhost`) → получите HTTPS URL
 3. Используйте этот URL в BotFather
+
+**Важно:** Теперь nginx работает на порту 80 и является единой точкой входа для всего приложения (frontend + API).
 
 ## Решение 2: Использование ngrok
 
@@ -91,8 +93,8 @@ ngrok http 8080
 # 2. Запустите приложение
 docker compose up -d
 
-# 3. Создайте туннель
-ngrok http 8080
+# 3. Создайте туннель (nginx работает на порту 80)
+ngrok http 80
 
 # 4. Скопируйте HTTPS URL (например: https://abc123.ngrok-free.app)
 
