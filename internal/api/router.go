@@ -5,19 +5,23 @@ import (
 
 	"github.com/Chelaran/mayoku/internal/api/handlers"
 	"github.com/Chelaran/mayoku/internal/api/middleware"
+	"github.com/Chelaran/mayoku/internal/game"
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
 	"github.com/minio/minio-go/v7"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 // RouterConfig содержит зависимости для роутера
 type RouterConfig struct {
-	DB         *gorm.DB
-	BotToken   string
-	JWTSecret  string
-	MinIO      *minio.Client
+	DB          *gorm.DB
+	BotToken    string
+	JWTSecret   string
+	MinIO       *minio.Client
 	MinIOBucket string
+	Redis       *redis.Client
+	GameHub     *game.Hub
 }
 
 // Router настраивает маршруты приложения
@@ -250,6 +254,8 @@ func Router(cfg RouterConfig) http.Handler {
 	userHandler := handlers.NewUserHandler(cfg.DB)
 	uploadHandler := handlers.NewUploadHandler(cfg.MinIO, cfg.MinIOBucket)
 	deckHandler := handlers.NewDeckHandler(cfg.DB)
+	gameHandler := handlers.NewGameHandler(cfg.GameHub, cfg.DB)
+	wsHandler := handlers.NewWebSocketHandler(cfg.GameHub, cfg.DB)
 
 	// API routes
 	r.Route("/api", func(r chi.Router) {
@@ -265,17 +271,24 @@ func Router(cfg RouterConfig) http.Handler {
 
 			// Decks routes
 			r.Route("/decks", func(r chi.Router) {
-				r.Post("/", deckHandler.HandleCreateDeck)           // POST /api/decks - создание набора
-				r.Get("/", deckHandler.HandleGetDecks)               // GET /api/decks - список наборов
-				r.Get("/{id}", deckHandler.HandleGetDeck)            // GET /api/decks/:id - получение набора
-				r.Put("/{id}", deckHandler.HandleUpdateDeck)         // PUT /api/decks/:id - обновление набора
-				r.Delete("/{id}", deckHandler.HandleDeleteDeck)      // DELETE /api/decks/:id - удаление набора
+				r.Post("/", deckHandler.HandleCreateDeck)       // POST /api/decks - создание набора
+				r.Get("/", deckHandler.HandleGetDecks)          // GET /api/decks - список наборов
+				r.Get("/{id}", deckHandler.HandleGetDeck)       // GET /api/decks/:id - получение набора
+				r.Put("/{id}", deckHandler.HandleUpdateDeck)    // PUT /api/decks/:id - обновление набора
+				r.Delete("/{id}", deckHandler.HandleDeleteDeck) // DELETE /api/decks/:id - удаление набора
 			})
 
 			// Upload routes
 			r.Route("/upload", func(r chi.Router) {
-				r.Post("/", uploadHandler.HandleUpload)                    // POST /api/upload - загрузка картинки в MinIO
-				r.Get("/presigned", uploadHandler.HandleGetPresignedURL)    // GET /api/upload/presigned - получение presigned URL
+				r.Post("/", uploadHandler.HandleUpload)                  // POST /api/upload - загрузка картинки в MinIO
+				r.Get("/presigned", uploadHandler.HandleGetPresignedURL) // GET /api/upload/presigned - получение presigned URL
+			})
+
+			// Game routes
+			r.Route("/game", func(r chi.Router) {
+				r.Post("/rooms", gameHandler.HandleCreateRoom) // POST /api/game/rooms - создание комнаты
+				r.Get("/rooms", gameHandler.HandleListRooms)   // GET /api/game/rooms - список комнат
+				r.Get("/ws", wsHandler.HandleWebSocket)        // GET /api/game/ws - WebSocket подключение
 			})
 		})
 	})

@@ -38,9 +38,9 @@ type CreateDeckRequest struct {
 
 // UpdateDeckRequest запрос на обновление колоды
 type UpdateDeckRequest struct {
-	Name     string             `json:"name,omitempty"`
-	IsPublic *bool              `json:"is_public,omitempty"`
-	Status   models.DeckStatus  `json:"status,omitempty"`
+	Name      string            `json:"name,omitempty"`
+	IsPublic  *bool             `json:"is_public,omitempty"`
+	Status    models.DeckStatus `json:"status,omitempty"`
 	Locations []struct {
 		ID       uint     `json:"id,omitempty"`
 		Name     string   `json:"name,omitempty"`
@@ -81,7 +81,7 @@ func (h *DeckHandler) HandleCreateDeck(w http.ResponseWriter, r *http.Request) {
 		AuthorID: userID,
 		Name:     req.Name,
 		IsPublic: req.IsPublic,
-		Status:    models.DeckStatusDraft, // По умолчанию черновик
+		Status:   models.DeckStatusDraft, // По умолчанию черновик
 	}
 
 	// Создаем локации
@@ -348,4 +348,3 @@ func (h *DeckHandler) HandleDeleteDeck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNoContent)
 }
-

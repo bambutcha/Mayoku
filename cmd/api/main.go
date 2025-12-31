@@ -12,6 +12,7 @@ import (
 	"github.com/Chelaran/mayoku/internal/api"
 	"github.com/Chelaran/mayoku/internal/config"
 	"github.com/Chelaran/mayoku/internal/database"
+	"github.com/Chelaran/mayoku/internal/game"
 	"github.com/Chelaran/mayoku/internal/models"
 
 	logger "github.com/Chelaran/yagalog"
@@ -69,6 +70,10 @@ func main() {
 	}
 	log.Info("MinIO connected successfully, bucket '%s' ready", cfg.MinIO.BucketName)
 
+	// Создание Game Hub
+	gameHub := game.NewHub(db, redisClient)
+	log.Info("Game Hub initialized")
+
 	// Создание HTTP сервера с Chi роутером
 	addr := fmt.Sprintf("%s:%s", cfg.App.Host, cfg.App.Port)
 	router := api.Router(api.RouterConfig{
@@ -77,6 +82,8 @@ func main() {
 		JWTSecret:   cfg.JWT.Secret,
 		MinIO:       minioClient,
 		MinIOBucket: cfg.MinIO.BucketName,
+		Redis:       redisClient,
+		GameHub:     gameHub,
 	})
 
 	server := &http.Server{
