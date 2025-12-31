@@ -43,7 +43,12 @@ func main() {
 	log.Info("PostgreSQL connected successfully")
 
 	// Автомиграция моделей
-	err = db.AutoMigrate(&models.User{}, &models.Deck{}, &models.Location{})
+	err = db.AutoMigrate(
+		&models.User{},
+		&models.Deck{},
+		&models.Location{},
+		&models.GameHistory{},
+	)
 	if err != nil {
 		log.Fatal("Failed to run migrations: %v", err)
 	}
@@ -58,7 +63,7 @@ func main() {
 	log.Info("Redis connected successfully")
 
 	// Подключение к MinIO
-	_, err = database.ConnectMinIO(cfg)
+	minioClient, err := database.ConnectMinIO(cfg)
 	if err != nil {
 		log.Fatal("Failed to connect to MinIO: %v", err)
 	}
@@ -67,9 +72,11 @@ func main() {
 	// Создание HTTP сервера с Chi роутером
 	addr := fmt.Sprintf("%s:%s", cfg.App.Host, cfg.App.Port)
 	router := api.Router(api.RouterConfig{
-		DB:        db,
-		BotToken:  cfg.Telegram.BotToken,
-		JWTSecret: cfg.JWT.Secret,
+		DB:          db,
+		BotToken:    cfg.Telegram.BotToken,
+		JWTSecret:   cfg.JWT.Secret,
+		MinIO:       minioClient,
+		MinIOBucket: cfg.MinIO.BucketName,
 	})
 
 	server := &http.Server{

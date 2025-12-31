@@ -7,14 +7,17 @@ import (
 	"github.com/Chelaran/mayoku/internal/api/middleware"
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
+	"github.com/minio/minio-go/v7"
 	"gorm.io/gorm"
 )
 
 // RouterConfig содержит зависимости для роутера
 type RouterConfig struct {
-	DB        *gorm.DB
-	BotToken  string
-	JWTSecret string
+	DB         *gorm.DB
+	BotToken   string
+	JWTSecret  string
+	MinIO      *minio.Client
+	MinIOBucket string
 }
 
 // Router настраивает маршруты приложения
@@ -245,6 +248,8 @@ func Router(cfg RouterConfig) http.Handler {
 	// Инициализация handlers
 	authHandler := handlers.NewAuthHandler(cfg.DB, cfg.BotToken, cfg.JWTSecret)
 	userHandler := handlers.NewUserHandler(cfg.DB)
+	uploadHandler := handlers.NewUploadHandler(cfg.MinIO, cfg.MinIOBucket)
+	deckHandler := handlers.NewDeckHandler(cfg.DB)
 
 	// API routes
 	r.Route("/api", func(r chi.Router) {
@@ -260,15 +265,17 @@ func Router(cfg RouterConfig) http.Handler {
 
 			// Decks routes
 			r.Route("/decks", func(r chi.Router) {
-				// POST /api/decks - создание набора
-				// GET /api/decks - список наборов
-				// TODO: реализовать
+				r.Post("/", deckHandler.HandleCreateDeck)           // POST /api/decks - создание набора
+				r.Get("/", deckHandler.HandleGetDecks)               // GET /api/decks - список наборов
+				r.Get("/{id}", deckHandler.HandleGetDeck)            // GET /api/decks/:id - получение набора
+				r.Put("/{id}", deckHandler.HandleUpdateDeck)         // PUT /api/decks/:id - обновление набора
+				r.Delete("/{id}", deckHandler.HandleDeleteDeck)      // DELETE /api/decks/:id - удаление набора
 			})
 
 			// Upload routes
 			r.Route("/upload", func(r chi.Router) {
-				// POST /api/upload - загрузка картинки в MinIO
-				// TODO: реализовать
+				r.Post("/", uploadHandler.HandleUpload)                    // POST /api/upload - загрузка картинки в MinIO
+				r.Get("/presigned", uploadHandler.HandleGetPresignedURL)    // GET /api/upload/presigned - получение presigned URL
 			})
 		})
 	})
