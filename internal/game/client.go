@@ -142,6 +142,8 @@ func (c *Client) handleMessage(msg ClientMessage) {
 		c.handleSpyGuess(msg.Payload)
 	case "kick_player":
 		c.handleKickPlayer(msg.Payload)
+	case "update_room_settings":
+		c.handleUpdateRoomSettings(msg.Payload)
 	default:
 		c.SendError(&GameError{Message: "unknown message type"})
 	}
@@ -167,6 +169,39 @@ func (c *Client) handleKickPlayer(payload json.RawMessage) {
 		c.SendError(err)
 		return
 	}
+}
+
+// handleUpdateRoomSettings обрабатывает обновление настроек комнаты (только админ комнаты)
+func (c *Client) handleUpdateRoomSettings(payload json.RawMessage) {
+	if c.room == nil {
+		c.SendError(&GameError{Message: "not in a room"})
+		return
+	}
+
+	var req struct {
+		MaxPlayers *int  `json:"max_players,omitempty"`
+		SpyCount   *int  `json:"spy_count,omitempty"`
+		Duration   *int  `json:"duration,omitempty"`
+		DeckID     *uint `json:"deck_id,omitempty"`
+	}
+
+	if err := json.Unmarshal(payload, &req); err != nil {
+		c.SendError(&GameError{Message: "invalid payload"})
+		return
+	}
+
+	if err := c.room.UpdateSettings(c.userID, req.MaxPlayers, req.SpyCount, req.Duration, req.DeckID); err != nil {
+		c.SendError(err)
+		return
+	}
+
+	// Отправляем подтверждение
+	c.SendMessage(WSMessage{
+		Type: "room_settings_updated",
+		Payload: map[string]interface{}{
+			"room_id": c.room.state.RoomID,
+		},
+	})
 }
 
 // handleJoinRoom обрабатывает присоединение к комнате

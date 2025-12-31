@@ -231,15 +231,23 @@ Redis хранит "горячие" данные живых игр.
 #### Client -> Server:
 
 1. join_room { room_id }
-2. vote_start { target_user_id }
-3. vote_answer { yes/no }
+2. set_ready { ready: true/false }
+3. vote_start { target_user_id }
+4. vote_answer { vote: true/false }
+5. spy_guess { location_name }
+6. kick_player { target_user_id } (только админ комнаты)
+7. update_room_settings { max_players?, spy_count?, duration?, deck_id? } (только админ комнаты)
 
 #### Server -> Client:
 
-1. room_update (полный список игроков при входе/выходе).
-2. game_started (твоя роль, локация, время).
-3. vote_initiated (поп-ап голосования).
-4. game_over (результаты).
+1. joined_room { room_id, is_room_admin }
+2. room_update (полный список игроков при входе/выходе, настройки).
+3. game_started (твоя роль, локация, время).
+4. vote_initiated (поп-ап голосования).
+5. game_over (результаты).
+6. kicked_from_room { room_id, reason }
+7. room_settings_updated { room_id }
+8. error { message }
 
 ## 🏁 Roadmap (MVP)
 1. Infra: Поднять docker-compose (Postgres, Redis, MinIO).

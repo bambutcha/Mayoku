@@ -153,6 +153,59 @@ func (r *Room) KickPlayer(adminUserID, targetUserID uint) error {
 	return nil
 }
 
+// UpdateSettings обновляет настройки комнаты (только админ комнаты)
+func (r *Room) UpdateSettings(adminUserID uint, maxPlayers, spyCount, duration *int, deckID *uint) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	// Проверяем права админа комнаты
+	if r.state.CreatedBy != adminUserID {
+		return fmt.Errorf("only room admin can update settings")
+	}
+
+	// Проверяем, что игра еще не началась
+	if r.state.Status != StatusWaiting {
+		return fmt.Errorf("cannot update settings: game already started")
+	}
+
+	// Обновляем настройки
+	if maxPlayers != nil {
+		if *maxPlayers < 3 || *maxPlayers > 10 {
+			return fmt.Errorf("max_players must be between 3 and 10")
+		}
+		r.state.MaxPlayers = *maxPlayers
+	}
+
+	if spyCount != nil {
+		if *spyCount < 1 || *spyCount > 2 {
+			return fmt.Errorf("spy_count must be 1 or 2")
+		}
+		r.state.SpyCount = *spyCount
+	}
+
+	if duration != nil {
+		if *duration < 3 || *duration > 15 {
+			return fmt.Errorf("duration must be between 3 and 15 minutes")
+		}
+		r.state.Duration = *duration
+	}
+
+	if deckID != nil {
+		// Проверяем существование колоды
+		var deck models.Deck
+		if err := r.db.First(&deck, *deckID).Error; err != nil {
+			return fmt.Errorf("deck not found")
+		}
+		r.state.DeckID = *deckID
+		r.state.DeckName = deck.Name
+	}
+
+	r.saveToRedis()
+	r.broadcastState()
+
+	return nil
+}
+
 // SetPlayerReady устанавливает готовность игрока
 func (r *Room) SetPlayerReady(userID uint, ready bool) error {
 	r.mu.Lock()
