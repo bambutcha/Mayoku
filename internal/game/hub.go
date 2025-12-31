@@ -3,18 +3,18 @@ package game
 import (
 	"sync"
 
-	"github.com/redis/go-redis/v9"
 	logger "github.com/Chelaran/yagalog"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 // Hub управляет всеми комнатами и клиентами
 type Hub struct {
-	mu      sync.RWMutex
-	rooms   map[string]*Room // room_id -> Room
-	db      *gorm.DB
-	redis   *redis.Client
-	log     *logger.Logger
+	mu    sync.RWMutex
+	rooms map[string]*Room // room_id -> Room
+	db    *gorm.DB
+	redis *redis.Client
+	log   *logger.Logger
 }
 
 // NewHub создает новый Hub
@@ -76,4 +76,3 @@ func (h *Hub) ListRooms() []string {
 
 	return rooms
 }
-

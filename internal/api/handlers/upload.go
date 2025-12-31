@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/Chelaran/mayoku/internal/api/middleware"
+	logger "github.com/Chelaran/yagalog"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
-	logger "github.com/Chelaran/yagalog"
 )
 
 type UploadHandler struct {
@@ -130,7 +130,7 @@ func (h *UploadHandler) HandleUpload(w http.ResponseWriter, r *http.Request) {
 	// Формируем URL (для MinIO нужен публичный URL или через presigned URL)
 	// В продакшене лучше использовать presigned URL или настроить публичный доступ
 	fileURL := fmt.Sprintf("/%s/%s", h.bucketName, objectName)
-	
+
 	// Если MinIO настроен с публичным доступом, можно использовать полный URL
 	// fileURL := fmt.Sprintf("http://%s/%s/%s", h.minioClient.EndpointURL().Host, h.bucketName, objectName)
 
@@ -184,8 +184,7 @@ func (h *UploadHandler) HandleGetPresignedURL(w http.ResponseWriter, r *http.Req
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
-		"upload_url": presignedURL.String(),
+		"upload_url":  presignedURL.String(),
 		"object_name": objectName,
 	})
 }
-

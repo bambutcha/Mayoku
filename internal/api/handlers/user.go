@@ -54,13 +54,13 @@ func (h *UserHandler) HandleGetMe(w http.ResponseWriter, r *http.Request) {
 
 	// Формируем ответ со статистикой
 	response := map[string]interface{}{
-		"id":            user.ID,
-		"tg_id":         user.TgID,
-		"username":      user.Username,
-		"avatar_url":    user.AvatarURL,
-		"created_at":    user.CreatedAt,
-		"updated_at":    user.UpdatedAt,
-		"is_admin":      user.IsAdmin,
+		"id":             user.ID,
+		"tg_id":          user.TgID,
+		"username":       user.Username,
+		"avatar_url":     user.AvatarURL,
+		"created_at":     user.CreatedAt,
+		"updated_at":     user.UpdatedAt,
+		"is_admin":       user.IsAdmin,
 		"is_super_admin": user.IsSuperAdmin,
 		"statistics": map[string]interface{}{
 			"games_played":  user.GamesPlayed,
@@ -86,4 +86,3 @@ func calculateWinRate(user models.User) float64 {
 	}
 	return float64(totalWins) / float64(totalGames) * 100.0
 }
-

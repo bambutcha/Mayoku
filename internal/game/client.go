@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/gorilla/websocket"
 	logger "github.com/Chelaran/yagalog"
+	"github.com/gorilla/websocket"
 )
 
 var (
-	ErrRoomExists = &GameError{Message: "room already exists"}
-	ErrRoomNotFound = &GameError{Message: "room not found"}
+	ErrRoomExists     = &GameError{Message: "room already exists"}
+	ErrRoomNotFound   = &GameError{Message: "room not found"}
 	ErrPlayerNotFound = &GameError{Message: "player not found"}
 )
 
@@ -24,16 +24,16 @@ func (e *GameError) Error() string {
 
 // Client представляет WebSocket клиента
 type Client struct {
-	mu       sync.Mutex
-	conn     *websocket.Conn
-	send     chan []byte
-	hub      *Hub
-	room     *Room
-	userID   uint
-	tgID     int64
-	username string
+	mu        sync.Mutex
+	conn      *websocket.Conn
+	send      chan []byte
+	hub       *Hub
+	room      *Room
+	userID    uint
+	tgID      int64
+	username  string
 	avatarURL string
-	log      *logger.Logger
+	log       *logger.Logger
 }
 
 // NewClient создает нового клиента
@@ -234,7 +234,7 @@ func (c *Client) handleJoinRoom(payload json.RawMessage) {
 	c.SendMessage(WSMessage{
 		Type: "joined_room",
 		Payload: map[string]interface{}{
-			"room_id":      req.RoomID,
+			"room_id":       req.RoomID,
 			"is_room_admin": isRoomAdmin,
 		},
 	})
@@ -327,4 +327,3 @@ func (c *Client) handleSpyGuess(payload json.RawMessage) {
 		return
 	}
 }
-

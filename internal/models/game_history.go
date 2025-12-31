@@ -8,8 +8,8 @@ import (
 type GameHistory struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	RoomUUID  string    `gorm:"index;not null" json:"room_uuid"` // UUID комнаты для связи с логами
-	DeckName  string    `gorm:"not null" json:"deck_name"`      // Название колоды
-	Winner    string    `gorm:"not null" json:"winner"`         // "Spy" | "Locals"
+	DeckName  string    `gorm:"not null" json:"deck_name"`       // Название колоды
+	Winner    string    `gorm:"not null" json:"winner"`          // "Spy" | "Locals"
 	Duration  int       `gorm:"not null" json:"duration"`        // Длительность в секундах
 	CreatedAt time.Time `json:"created_at"`
 
@@ -21,4 +21,3 @@ type GameHistory struct {
 func (GameHistory) TableName() string {
 	return "game_history"
 }
-
