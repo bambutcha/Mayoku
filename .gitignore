@@ -21,7 +21,7 @@ vendor/
 go.work
 
 # Environment variables
-.env
+*.env
 
 # IDE
 .idea/

@@ -70,5 +70,8 @@ export interface ClientMessage {
   payload: unknown
 }
 
+// Re-export game types
+export * from './game'
+
 
 
