@@ -297,10 +297,10 @@ func Router(cfg RouterConfig) http.Handler {
 				r.Use(middleware.AdminMiddleware(cfg.DB))
 
 				// Deck moderation
-				r.Get("/decks/pending", adminHandler.HandleGetPendingDecks)      // GET /api/admin/decks/pending - колоды на модерации
-				r.Get("/decks", adminHandler.HandleGetAllDecks)                 // GET /api/admin/decks - все колоды
-				r.Put("/decks/{id}/approve", adminHandler.HandleApproveDeck)    // PUT /api/admin/decks/:id/approve - одобрить
-				r.Put("/decks/{id}/reject", adminHandler.HandleRejectDeck)       // PUT /api/admin/decks/:id/reject - отклонить
+				r.Get("/decks/pending", adminHandler.HandleGetPendingDecks)  // GET /api/admin/decks/pending - колоды на модерации
+				r.Get("/decks", adminHandler.HandleGetAllDecks)              // GET /api/admin/decks - все колоды
+				r.Put("/decks/{id}/approve", adminHandler.HandleApproveDeck) // PUT /api/admin/decks/:id/approve - одобрить
+				r.Put("/decks/{id}/reject", adminHandler.HandleRejectDeck)   // PUT /api/admin/decks/:id/reject - отклонить
 			})
 		})
 	})
