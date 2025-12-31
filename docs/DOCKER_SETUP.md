@@ -43,6 +43,7 @@ docker compose up -d --build
 
 ### 3. Проверка работы
 
+- **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8080
 - **PostgreSQL**: localhost:5432
 - **Redis**: localhost:6379
@@ -61,6 +62,12 @@ docker compose down -v
 ```
 
 ## Структура сервисов
+
+### Frontend
+- **Порт**: 3000
+- **Технологии**: Next.js 15 (static export) + Nginx
+- **Переменные окружения**: `NEXT_PUBLIC_API_URL` (устанавливается через build arg)
+- **Зависимости**: Backend
 
 ### Backend
 - **Порт**: 8080
