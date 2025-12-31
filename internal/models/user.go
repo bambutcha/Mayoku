@@ -21,7 +21,8 @@ type User struct {
 	LossesLocal int `gorm:"default:0" json:"losses_local"`
 
 	// Admin
-	IsAdmin bool `gorm:"default:false" json:"is_admin"`
+	IsAdmin      bool `gorm:"default:false" json:"is_admin"`
+	IsSuperAdmin bool `gorm:"default:false" json:"is_super_admin"` // Главный админ (может управлять другими админами)
 
 	// Связи
 	Decks       []Deck        `gorm:"foreignKey:AuthorID" json:"decks,omitempty"`
