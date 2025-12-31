@@ -4,7 +4,22 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useAuthStore } from '@/stores/auth'
 import type { WSMessage, RoomState, GameStartedPayload } from '@/types/game'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+// WebSocket URL - in production use wss://, in development ws://
+const getWebSocketURL = (roomId: string): string => {
+  if (typeof window === 'undefined') return ''
+  
+  const isProduction = window.location.protocol === 'https:'
+  const protocol = isProduction ? 'wss:' : 'ws:'
+  const host = window.location.host
+  
+  // In Docker, nginx proxies WebSocket to backend
+  // In development, connect directly to backend
+  if (host === 'localhost' || host.includes('localhost')) {
+    return `ws://localhost:8080/api/game/ws?room_id=${roomId}`
+  }
+  
+  return `${protocol}//${host}/api/game/ws?room_id=${roomId}`
+}
 
 export function useGameWebSocket(roomId: string) {
   const [roomState, setRoomState] = useState<RoomState | null>(null)
@@ -22,7 +37,7 @@ export function useGameWebSocket(roomId: string) {
     }
 
     try {
-      const wsUrl = API_BASE_URL.replace(/^http/, 'ws') + `/api/game/ws?room_id=${roomId}`
+      const wsUrl = getWebSocketURL(roomId)
       const ws = new WebSocket(wsUrl)
 
       ws.onopen = () => {

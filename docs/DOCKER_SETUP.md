@@ -43,8 +43,11 @@ docker compose up -d --build
 
 ### 3. Проверка работы
 
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8080
+- **Приложение (Nginx)**: http://localhost (порт 80)
+  - Frontend статика отдается напрямую
+  - API запросы проксируются на `/api/*` → backend:8080
+  - WebSocket соединения проксируются на `/api/game/ws`
+- **Backend API** (прямой доступ): http://localhost:8080
 - **PostgreSQL**: localhost:5432
 - **Redis**: localhost:6379
 - **MinIO Console**: http://localhost:9001 (minioadmin/minioadmin)
@@ -63,11 +66,17 @@ docker compose down -v
 
 ## Структура сервисов
 
-### Frontend
-- **Порт**: 3000
-- **Технологии**: Next.js 15 (static export) + Nginx
-- **Переменные окружения**: `NEXT_PUBLIC_API_URL` (устанавливается через build arg)
-- **Зависимости**: Backend
+### Nginx (Reverse Proxy)
+- **Порт**: 80
+- **Функции**:
+  - Отдает статику frontend (Next.js static export)
+  - Проксирует `/api/*` запросы на backend:8080
+  - Проксирует WebSocket соединения `/api/game/ws` на backend:8080
+- **Преимущества**:
+  - Один порт для всего приложения
+  - Нет проблем с CORS
+  - Единая точка входа
+  - Готово для добавления SSL/TLS
 
 ### Backend
 - **Порт**: 8080

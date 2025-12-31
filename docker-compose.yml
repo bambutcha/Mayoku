@@ -93,15 +93,15 @@ services:
       timeout: 20s
       retries: 3
 
-  frontend:
+  nginx:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: nginx/Dockerfile
       args:
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://backend:8080}
-    container_name: mayoku-frontend
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost/api}
+    container_name: mayoku-nginx
     ports:
-      - "3000:80"
+      - "80:80"
     depends_on:
       - backend
     networks:

@@ -1,6 +1,20 @@
 import { api } from './api'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+// In production (Docker), API is proxied through nginx at /api
+// In development, use NEXT_PUBLIC_API_URL or default to localhost:8080
+const getAPIBaseURL = (): string => {
+  if (typeof window !== 'undefined') {
+    // In browser, check if we're in production (nginx proxy) or development
+    if (window.location.origin === 'http://localhost:3000' || window.location.origin.includes('localhost:3000')) {
+      return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+    }
+    // In production, use relative path (nginx proxy)
+    return '/api'
+  }
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+}
+
+const API_BASE_URL = getAPIBaseURL()
 
 export interface PresignedURLResponse {
   url: string
@@ -18,7 +32,8 @@ export async function uploadFile(file: File): Promise<string> {
     ? localStorage.getItem('jwt_token') 
     : null
 
-  const response = await fetch(`${API_BASE_URL}/api/upload`, {
+  const uploadURL = API_BASE_URL ? `${API_BASE_URL}/api/upload` : '/api/upload'
+  const response = await fetch(uploadURL, {
     method: 'POST',
     headers: token ? {
       'Authorization': `Bearer ${token}`,
@@ -36,8 +51,11 @@ export async function uploadFile(file: File): Promise<string> {
   // В продакшене это будет presigned URL или публичный URL
   if (data.url.startsWith('/')) {
     // Для локальной разработки используем MinIO напрямую
-    // В продакшене нужно настроить правильный URL
-    return `${API_BASE_URL.replace(':8080', ':9000')}${data.url}`
+    if (API_BASE_URL && API_BASE_URL.includes('localhost:8080')) {
+      return `${API_BASE_URL.replace(':8080', ':9000')}${data.url}`
+    }
+    // В production через nginx proxy
+    return `http://localhost:9000${data.url}`
   }
   return data.url
 }

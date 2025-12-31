@@ -1,4 +1,9 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+// In production (Docker), API is proxied through nginx at /api
+// In development, use NEXT_PUBLIC_API_URL or default to localhost:8080
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
+  (typeof window !== 'undefined' && window.location.origin === 'http://localhost:3000' 
+    ? 'http://localhost:8080' 
+    : '/api')
 
 export class ApiError extends Error {
   constructor(
