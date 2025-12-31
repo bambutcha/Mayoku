@@ -45,3 +45,4 @@ func ValidateJWT(tokenString, secret string) (*JWTClaims, error) {
 
 	return claims, nil
 }
+

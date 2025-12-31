@@ -138,3 +138,4 @@ window.Telegram.WebApp.initData
 2. Убедитесь, что сервер отвечает на запросы
 3. Проверьте логи: `docker compose logs app`
 
+

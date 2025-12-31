@@ -27,3 +27,4 @@ func ConnectPostgres(cfg *config.Config) (*gorm.DB, error) {
 
 	return db, nil
 }
+
