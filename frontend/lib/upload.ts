@@ -32,7 +32,9 @@ export async function uploadFile(file: File): Promise<string> {
     ? localStorage.getItem('jwt_token') 
     : null
 
-  const uploadURL = API_BASE_URL ? `${API_BASE_URL}/api/upload` : '/api/upload'
+  // In production (nginx proxy), API_BASE_URL is '/api', so we use it directly
+  // In development, API_BASE_URL is 'http://localhost:8080', so we add '/api/upload'
+  const uploadURL = API_BASE_URL === '/api' ? '/api/upload' : `${API_BASE_URL}/api/upload`
   const response = await fetch(uploadURL, {
     method: 'POST',
     headers: token ? {
