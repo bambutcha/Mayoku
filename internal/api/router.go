@@ -302,10 +302,13 @@ func Router(cfg RouterConfig) http.Handler {
 				r.Put("/decks/{id}/approve", adminHandler.HandleApproveDeck) // PUT /api/admin/decks/:id/approve - одобрить
 				r.Put("/decks/{id}/reject", adminHandler.HandleRejectDeck)   // PUT /api/admin/decks/:id/reject - отклонить
 
-				// User management
-				r.Get("/users/admins", adminHandler.HandleGetAdmins)              // GET /api/admin/users/admins - список админов
-				r.Put("/users/{id}/make-admin", adminHandler.HandleMakeAdmin)     // PUT /api/admin/users/:id/make-admin - сделать админом
-				r.Put("/users/{id}/remove-admin", adminHandler.HandleRemoveAdmin) // PUT /api/admin/users/:id/remove-admin - убрать админа
+				// User management (только для супер-админа)
+				r.Route("/users", func(r chi.Router) {
+					r.Use(middleware.SuperAdminMiddleware(cfg.DB))
+					r.Get("/admins", adminHandler.HandleGetAdmins)            // GET /api/admin/users/admins - список админов
+					r.Put("/{id}/make-admin", adminHandler.HandleMakeAdmin)    // PUT /api/admin/users/:id/make-admin - сделать админом
+					r.Put("/{id}/remove-admin", adminHandler.HandleRemoveAdmin) // PUT /api/admin/users/:id/remove-admin - убрать админа
+				})
 			})
 		})
 	})
