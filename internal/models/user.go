@@ -14,11 +14,12 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at"`
 
 	// Statistics
-	GamesPlayed int `gorm:"default:0" json:"games_played"`
-	WinsSpy     int `gorm:"default:0" json:"wins_spy"`
-	WinsLocal   int `gorm:"default:0" json:"wins_local"`
-	LossesSpy   int `gorm:"default:0" json:"losses_spy"`
-	LossesLocal int `gorm:"default:0" json:"losses_local"`
+	GamesPlayed  int `gorm:"default:0" json:"games_played"`
+	WinsSpy      int `gorm:"default:0" json:"wins_spy"`
+	WinsLocal    int `gorm:"default:0" json:"wins_local"`
+	LossesSpy    int `gorm:"default:0" json:"losses_spy"`
+	LossesLocal  int `gorm:"default:0" json:"losses_local"`
+	DecksCreated int `gorm:"default:0" json:"decks_created"` // Количество созданных наборов
 
 	// Admin
 	IsAdmin      bool `gorm:"default:false" json:"is_admin"`

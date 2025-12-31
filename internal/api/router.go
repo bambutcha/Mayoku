@@ -305,8 +305,8 @@ func Router(cfg RouterConfig) http.Handler {
 				// User management (только для супер-админа)
 				r.Route("/users", func(r chi.Router) {
 					r.Use(middleware.SuperAdminMiddleware(cfg.DB))
-					r.Get("/admins", adminHandler.HandleGetAdmins)            // GET /api/admin/users/admins - список админов
-					r.Put("/{id}/make-admin", adminHandler.HandleMakeAdmin)    // PUT /api/admin/users/:id/make-admin - сделать админом
+					r.Get("/admins", adminHandler.HandleGetAdmins)              // GET /api/admin/users/admins - список админов
+					r.Put("/{id}/make-admin", adminHandler.HandleMakeAdmin)     // PUT /api/admin/users/:id/make-admin - сделать админом
 					r.Put("/{id}/remove-admin", adminHandler.HandleRemoveAdmin) // PUT /api/admin/users/:id/remove-admin - убрать админа
 				})
 			})

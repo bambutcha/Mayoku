@@ -140,8 +140,32 @@ func (c *Client) handleMessage(msg ClientMessage) {
 		c.handleVoteAnswer(msg.Payload)
 	case "spy_guess":
 		c.handleSpyGuess(msg.Payload)
+	case "kick_player":
+		c.handleKickPlayer(msg.Payload)
 	default:
 		c.SendError(&GameError{Message: "unknown message type"})
+	}
+}
+
+// handleKickPlayer обрабатывает исключение игрока из комнаты (только админ комнаты)
+func (c *Client) handleKickPlayer(payload json.RawMessage) {
+	if c.room == nil {
+		c.SendError(&GameError{Message: "not in a room"})
+		return
+	}
+
+	var req struct {
+		TargetUserID uint `json:"target_user_id"`
+	}
+
+	if err := json.Unmarshal(payload, &req); err != nil {
+		c.SendError(&GameError{Message: "invalid payload"})
+		return
+	}
+
+	if err := c.room.KickPlayer(c.userID, req.TargetUserID); err != nil {
+		c.SendError(err)
+		return
 	}
 }
 
@@ -170,11 +194,13 @@ func (c *Client) handleJoinRoom(payload json.RawMessage) {
 
 	c.room = room
 
-	// Отправляем подтверждение
+	// Отправляем подтверждение с информацией о правах
+	isRoomAdmin := room.IsRoomAdmin(c.userID)
 	c.SendMessage(WSMessage{
 		Type: "joined_room",
 		Payload: map[string]interface{}{
-			"room_id": req.RoomID,
+			"room_id":      req.RoomID,
+			"is_room_admin": isRoomAdmin,
 		},
 	})
 }

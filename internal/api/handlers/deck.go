@@ -104,6 +104,9 @@ func (h *DeckHandler) HandleCreateDeck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Обновляем статистику пользователя
+	h.db.Model(&models.User{}).Where("id = ?", userID).UpdateColumn("decks_created", gorm.Expr("decks_created + 1"))
+
 	h.log.Info("Deck created: %s (ID: %d, Author: %d)", deck.Name, deck.ID, userID)
 
 	w.Header().Set("Content-Type", "application/json")

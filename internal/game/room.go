@@ -53,6 +53,13 @@ func NewRoom(roomID string, createdBy uint, deckID uint, deckName string, maxPla
 	return room
 }
 
+// IsRoomAdmin проверяет, является ли пользователь админом комнаты (создателем)
+func (r *Room) IsRoomAdmin(userID uint) bool {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.state.CreatedBy == userID
+}
+
 // AddPlayer добавляет игрока в комнату
 func (r *Room) AddPlayer(userID uint, tgID int64, username, avatarURL string, client *Client) error {
 	r.mu.Lock()
@@ -103,6 +110,47 @@ func (r *Room) RemovePlayer(userID uint) {
 
 	r.saveToRedis()
 	r.broadcastState()
+}
+
+// KickPlayer удаляет игрока из комнаты (только админ комнаты)
+func (r *Room) KickPlayer(adminUserID, targetUserID uint) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	// Проверяем права админа комнаты
+	if r.state.CreatedBy != adminUserID {
+		return fmt.Errorf("only room admin can kick players")
+	}
+
+	// Нельзя выгнать самого себя
+	if adminUserID == targetUserID {
+		return fmt.Errorf("cannot kick yourself")
+	}
+
+	// Проверяем, что игрок существует
+	if _, exists := r.state.Players[targetUserID]; !exists {
+		return fmt.Errorf("player not found in room")
+	}
+
+	// Удаляем игрока
+	delete(r.state.Players, targetUserID)
+	if client, exists := r.clients[targetUserID]; exists {
+		delete(r.clients, targetUserID)
+		// Отправляем уведомление выгнанному игроку
+		msg := WSMessage{
+			Type: "kicked_from_room",
+			Payload: map[string]interface{}{
+				"room_id": r.state.RoomID,
+				"reason":  "kicked by room admin",
+			},
+		}
+		client.SendMessage(msg)
+	}
+
+	r.saveToRedis()
+	r.broadcastState()
+
+	return nil
 }
 
 // SetPlayerReady устанавливает готовность игрока
@@ -557,6 +605,7 @@ func (r *Room) getPublicState() map[string]interface{} {
 		"players":     players,
 		"max_players": r.state.MaxPlayers,
 		"deck_name":   r.state.DeckName,
+		"created_by":  r.state.CreatedBy, // ID создателя комнаты
 	}
 
 	if r.state.TimerEnd != nil {
